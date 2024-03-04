@@ -1,2 +1,4 @@
-requests==2.26.0
-Flask==2.1.0
+Flask==3.0.2
+pip==24.0
+requests==2.31.0
+urllib3==2.2.1
