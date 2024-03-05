@@ -9,7 +9,7 @@ from urllib.parse import urlencode, urljoin
 from flask import Flask, request, redirect, session
 
 app = Flask(__name__)
-app.secret_key = '[Your_Own_Secret_Key]'  # This is just your own password to store your access tokens
+app.secret_key = 'tevin'
 
 # These are the Credentials. These are the only Manual Entries
 client_id = "[Enter_Client_ID]"
@@ -174,8 +174,11 @@ def get_items():
 # Function to make the API call
 def make_api_request(realm_id, access_token):
     try:
+        # Set the headers for the request
+        query = "select * from Item"
+
         # Construct the complete URL for the API call
-        api_url = f"{base_url}{realm_id}/query?query=select * from Item&minorversion={minorversion}"
+        api_url = f"{base_url}{realm_id}/query?query={query}&minorversion={minorversion}"
 
         # Set the headers for the request
         api_headers = {
@@ -207,9 +210,12 @@ def make_api_request(realm_id, access_token):
 
                     # Specify the order of columns
                     columns = [
-                        'Name', 'Description', 'Active', 'FullyQualifiedName', 'Taxable',
-                        'UnitPrice', 'Type', 'IncomeAccountRef', 'PurchaseCost',
-                        'TrackQtyOnHand', 'domain', 'sparse', 'Id', 'SyncToken', 'MetaData'
+                        'FullyQualifiedName', 'domain', 'Id', 'Name', 'TrackQtyOnHand', 'Type',
+                        'PurchaseCost', 'QtyOnHand', 'IncomeAccountRef_name', 'IncomeAccountRef_value',
+                        'AssetAccountRef_name', 'AssetAccountRef_value', 'Taxable',
+                        'MetaData_CreateTime', 'MetaData_LastUpdatedTime', 'sparse', 'Active',
+                        'SyncToken', 'InvStartDate', 'UnitPrice', 'ExpenseAccountRef_name',
+                        'ExpenseAccountRef_value', 'PurchaseDesc', 'Description',
                     ]
 
                     # Write the data to the CSV file
@@ -224,8 +230,28 @@ def make_api_request(realm_id, access_token):
                             # Handle the case where 'Description' is missing
                             item['Description'] = item.get('Description', '')
 
+                            # Handle nested fields
+                            asset_account_ref = item.get('AssetAccountRef', {})
+                            income_account_ref = item.get('IncomeAccountRef', {})
+                            expense_account_ref = item.get('ExpenseAccountRef', {})
+
                             # Write the values in the specified order
-                            row_values = [item.get(col, '') for col in columns]
+                            row_values = [
+                                item.get('FullyQualifiedName', ''), item.get('domain', ''),
+                                item.get('Id', ''), item.get('Name', ''),
+                                item.get('TrackQtyOnHand', ''), item.get('Type', ''),
+                                item.get('PurchaseCost', ''), item.get('QtyOnHand', ''),
+                                income_account_ref.get('name', ''), income_account_ref.get('value', ''),
+                                asset_account_ref.get('name', ''), asset_account_ref.get('value', ''),
+                                item.get('Taxable', ''),
+                                item.get('MetaData', {}).get('CreateTime', ''),
+                                item.get('MetaData', {}).get('LastUpdatedTime', ''),
+                                item.get('sparse', ''), item.get('Active', ''),
+                                item.get('SyncToken', ''), item.get('InvStartDate', ''),
+                                item.get('UnitPrice', ''),
+                                expense_account_ref.get('name', ''), expense_account_ref.get('value', ''),
+                                item.get('PurchaseDesc', ''), item.get('Description', ''),
+                            ]
                             csv_writer.writerow(row_values)
 
                     print(f"Data exported to CSV file: {csv_file_path}")
@@ -244,6 +270,7 @@ def make_api_request(realm_id, access_token):
         return {'error': {'code': response.status_code, 'message': str(http_err)}}
     except Exception as err:
         return {'error': {'code': 500, 'message': str(err)}}
+
 
 
 if __name__ == '__main__':
