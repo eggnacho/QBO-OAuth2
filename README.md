@@ -3,3 +3,5 @@ I am still learning Python and general coding. If you are making an API with QBO
 Code should obtain: Realm ID, Authorization Code, Access Token, and Refresh Token.
 
 Code uses Flask and requires you to add "http://localhost:5000/callback" to your Redirect URIs in the Intuit Developer Dashboard
+
+I am slowly building something where I should be able to get and update products all through 1 python file
