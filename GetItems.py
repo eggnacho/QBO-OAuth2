@@ -9,7 +9,7 @@ from urllib.parse import urlencode, urljoin
 from flask import Flask, request, redirect, session
 
 app = Flask(__name__)
-app.secret_key = 'tevin'
+app.secret_key = '[Your_Own_Secret_Key]'  # This is just your own password to store your access tokens
 
 # These are the Credentials. These are the only Manual Entries
 client_id = "[Enter_Client_ID]"
@@ -148,6 +148,23 @@ def refresh_token():
         print(f"Error refreshing token: {response.text}")
         return f"Error refreshing token: {response.text}"
 
+
+# New route for displaying links
+@app.route('/links')
+def show_links():
+    # Get realm_id from the query parameters or session
+    realm_id = request.args.get('realm_id')
+    access_token = request.args.get('access_token')
+
+    if not realm_id:
+        return 'Realm ID not provided in the request parameters.', 400
+
+    # Display a clickable link to /get_items
+    return f'''
+        <h1>Links</h1>
+        <p>Click the link below to go to /get_items:</p>
+        <a href="{urljoin(app_url, '/get_items')}?access_token={access_token}&realm_id={realm_id}">Get Items</a>
+    '''
 
 ##############################################################################################
 # Start API Calls Here
